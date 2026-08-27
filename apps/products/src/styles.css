@@ -1,1 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Global styles for this application.
+ *
+ * The theme lives one level up and is shared by BOTH applications, as a plain CSS
+ * file rather than a federated library. styles/theme.css explains why, and what
+ * that choice costs.
+ */
+@import '../../../styles/theme.css';

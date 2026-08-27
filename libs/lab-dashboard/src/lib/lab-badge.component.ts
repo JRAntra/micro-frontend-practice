@@ -26,25 +26,27 @@ import { LabProbeService } from './lab-probe.service';
         gap: 6px;
         align-items: baseline;
         text-decoration: none;
-        border: 1px solid #d8d8d8;
-        border-radius: 6px;
-        padding: 3px 8px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 12px;
-        color: #1c1c1c;
-        background: #fff;
+        border: 1px solid var(--line-2);
+        border-radius: var(--r-pill);
+        padding: 3px 10px;
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        font-weight: 600;
+        color: var(--ink-2);
+        background: var(--paper);
+        transition: border-color 0.14s var(--ease);
       }
       .badge:hover {
-        border-color: #9a9a9a;
+        border-color: var(--ink-4);
       }
       .badge.some {
-        border-color: #1a7f45;
-        background: #eef8f1;
-        color: #1a7f45;
+        border-color: var(--good-line);
+        background: var(--good-soft);
+        color: var(--good);
       }
       .badge.all {
-        border-color: #1a7f45;
-        background: #1a7f45;
+        border-color: transparent;
+        background: var(--good);
         color: #fff;
       }
       .pts {

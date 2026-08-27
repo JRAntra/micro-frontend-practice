@@ -74,8 +74,18 @@ npm test -- -t "[s3]"
 > federation config is read by webpack when the server _starts_. Save it and nothing happens.
 > Stop the affected server and run `npm start` (or `npm run start:remote`) again.
 
-**In the browser.** This is the step the dashboard was built for. The **session store instance**
-panel shows two ids side by side — the one the shell holds, and the one the remote reports.
+**In the browser.** This step has two demonstrations, and the second one is the more convincing.
+
+_The basket._ The **Add to basket** buttons on the Products page are the remote's code. The basket
+counter in the header, and the panel behind it, are the shell's. Add something:
+
+- If the store is shared, the header counter moves the instant you click.
+- If it is not, the button works, the card says "In basket", and the header stays at zero — with no
+  error in the console and nothing in the build output. That silence is the whole problem. A feature
+  that is quietly half-broken in production is worse than one that crashes.
+
+_The instance ids._ The **session store instance** panel on the dashboard shows the ids side by
+side — the one the shell holds, and the one the remote reports.
 
 Before this step they differ, and the panel is red: two copies of the store exist, so signing in on
 the shell is invisible inside the remote. Try it — type a name into the shell's sign-in box and watch

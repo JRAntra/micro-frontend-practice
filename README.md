@@ -10,8 +10,13 @@ Everything runs on your own machine. Nothing to sign into.
 
 ```
    apps/shell (host)  ──── fetched at RUNTIME ───▶  apps/products (remote)
-   owns the page chrome                             ships on its own schedule
+   brand, nav, basket, routing                      catalogue, cards, prices
 ```
+
+It is built as a working storefront rather than a scaffold, because most of what makes
+microfrontends hard only shows up when two teams share a real page: the **remote** owns the
+Add-to-basket buttons, the **shell** owns the basket counter in the header, and whether those two
+agree is the entire subject of step 3.
 
 ---
 
@@ -73,9 +78,17 @@ Two other documents matter:
 
 ---
 
-## The three ways you get feedback
+## The four ways you get feedback
 
-**1. The live dashboard, at <http://localhost:4271/lab>.**
+**1. The application itself.**
+
+The storefront is instrumented to tell you the truth about its own composition. The featured slot on
+the home page says whether that card _actually_ travelled over the network or was quietly compiled
+into the shell. The Products page shows which session store it can see. The footer lists which parts
+of the page belong to which application. None of it is decoration — each label is derived from a
+runtime observation, and the labels change as you work.
+
+**2. The live dashboard, at <http://localhost:4271/lab>.**
 
 The piece worth keeping open in a second tab. It shows what your two applications are _actually_
 doing, re-checked every two seconds:
@@ -88,7 +101,7 @@ doing, re-checked every two seconds:
 - the step checklist, with what to do next
 - a **blast radius** exercise: kill the remote's dev server and watch precisely what breaks
 
-**2. `npm test` — eighteen checks, one file per step in `tests/`.**
+**3. `npm test` — eighteen checks, one file per step in `tests/`.**
 
 They read your configuration files directly, so the suite runs in a couple of seconds with no build
 and no browser. `npm test -- -t "[s3]"` scopes to one step; `npm run test:watch` re-runs on save.
@@ -96,7 +109,7 @@ and no browser. `npm test -- -t "[s3]"` scopes to one step; `npm run test:watch`
 Failures are written to teach: what was checked, what was wanted, what was found, why it matters, the
 file to open, and the guide page to read.
 
-**3. `npm run verify:build` — what production sees.**
+**4. `npm run verify:build` — what production sees.**
 
 Builds both applications and inspects the manifests webpack actually emitted, including whether
 `remoteEntry.mjs` exists. This catches configuration that looks right but does not take effect.
@@ -131,9 +144,10 @@ done, and a passing test you changed tells you nothing.
 ## Layout
 
 ```
-apps/shell/           the HOST — page chrome, nav, sign-in
-apps/products/        a REMOTE — owned by "the products team"
-libs/shared-auth/     a plain Angular library holding the signed-in user
+apps/shell/           the HOST — brand, nav, sign-in, basket, 404, routing
+apps/products/        a REMOTE — catalogue, product cards, generated artwork
+libs/shared-auth/     the session: who is signed in, and what is in the basket
+styles/theme.css      the design system, imported by both applications
 libs/lab-dashboard/   the /lab dashboard. Lab infrastructure, not part of the exercise
 guide/                the six steps
 tests/                the checks

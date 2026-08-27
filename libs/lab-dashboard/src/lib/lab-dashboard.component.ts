@@ -14,7 +14,7 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
   selector: 'lab-dashboard',
   imports: [FederationDiagramComponent],
   template: `
-    <div class="lab">
+    <div class="page lab">
       <header>
         <h1>Lab dashboard</h1>
         <p class="lede">
@@ -218,24 +218,29 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
   styles: [
     `
       :host {
-        --lab-text: #1c1c1c;
-        --lab-text-dim: #6b6b6b;
-        --lab-line: #d8d8d8;
-        --lab-line-strong: #9a9a9a;
-        --lab-surface: #ffffff;
-        --lab-surface-dim: #f4f4f4;
-        --lab-ok: #1a7f45;
-        --lab-ok-bg: #eef8f1;
-        --lab-bad: #b3261e;
-        --lab-bad-bg: #fdeeed;
-        --lab-warn: #8a6100;
+        font-family: var(--font);
+        /* The dashboard is drawn with the storefront's own tokens so /lab reads as
+           part of the application rather than a debug overlay bolted on. The only
+           local names are the semantic aliases the diagram needs. */
+        --lab-text: var(--ink);
+        --lab-text-dim: var(--ink-3);
+        --lab-line: var(--line);
+        --lab-line-strong: var(--line-2);
+        --lab-surface: var(--paper);
+        --lab-surface-dim: var(--paper-2);
+        --lab-ok: var(--good);
+        --lab-ok-bg: var(--good-soft);
+        --lab-bad: var(--bad);
+        --lab-bad-bg: var(--bad-soft);
+        --lab-warn: var(--warn);
 
         display: block;
-        font-family: system-ui, sans-serif;
-        color: var(--lab-text);
       }
       .lab {
-        max-width: 820px;
+        max-width: 860px;
+        margin: 0 auto;
+        display: grid;
+        gap: 0;
       }
       h1 {
         font-size: 20px;
@@ -261,32 +266,32 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
       }
       .hint {
         background: var(--lab-surface-dim);
-        border-radius: 6px;
+        border-radius: var(--r);
         padding: 8px 10px;
       }
       .banner {
         margin-top: 20px;
         border: 1px solid var(--lab-bad);
         background: var(--lab-bad-bg);
-        border-radius: 6px;
+        border-radius: var(--r);
         padding: 10px 12px;
         font-size: 13px;
         line-height: 1.5;
       }
       code,
       kbd {
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-family: var(--font-mono);
         font-size: 0.92em;
       }
       kbd {
         border: 1px solid var(--lab-line);
-        border-radius: 4px;
+        border-radius: var(--r-sm);
         padding: 0 4px;
       }
 
       .score .bar {
         height: 8px;
-        border-radius: 4px;
+        border-radius: var(--r-sm);
         background: var(--lab-surface-dim);
         overflow: hidden;
       }
@@ -312,7 +317,7 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
         display: flex;
         gap: 10px;
         border: 1px solid var(--lab-line);
-        border-radius: 8px;
+        border-radius: var(--r-lg);
         padding: 10px 12px;
         background: var(--lab-surface);
       }
@@ -350,7 +355,7 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
         font-size: 11px;
         color: var(--lab-text-dim);
         border: 1px solid var(--lab-line);
-        border-radius: 4px;
+        border-radius: var(--r-sm);
         padding: 0 4px;
       }
       .detail {
@@ -377,7 +382,7 @@ import { LabProbeService, PRODUCTS_ORIGIN } from './lab-probe.service';
         gap: 6px;
         align-items: baseline;
         border: 1px solid var(--lab-line);
-        border-radius: 6px;
+        border-radius: var(--r);
         padding: 5px 9px;
         font-size: 13px;
       }

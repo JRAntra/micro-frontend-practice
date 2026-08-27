@@ -7,3 +7,12 @@
 
 # Large generated file; prettier churn here is pure noise.
 package-lock.json
+
+# Angular component templates.
+#
+# The pinned prettier here is 2.x, which predates Angular 17's `@if` / `@for` /
+# `@switch` template blocks. It formats the embedded template anyway and mangles
+# the indentation of every block — see the git history of this line if you doubt
+# it. These files are hand-formatted; `npm run format` covers everything else.
+apps/**/*.component.ts
+libs/**/*.component.ts

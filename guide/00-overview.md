@@ -20,13 +20,19 @@ think they own the same thing.
 ## This workspace
 
 ```
-apps/shell/          the HOST. Owns the page chrome, nav and sign-in box.
-apps/products/       a REMOTE. Owned by "the products team"; ships on its own schedule.
-libs/shared-auth/    a plain Angular library holding the signed-in user.
+apps/shell/          the HOST. Brand, nav, sign-in, basket, 404 page, routing.
+apps/products/       a REMOTE. The catalogue and its cards; ships on its own schedule.
+libs/shared-auth/    the session: who is signed in, and what is in the basket.
 libs/lab-dashboard/  the lab's own live progress view. Not part of the exercise.
+styles/theme.css     the design system, imported by both applications.
 tests/               the checks, one file per step. Read them freely.
 guide/               these documents.
 ```
+
+It is a working storefront rather than a scaffold on purpose. The interesting problems in this
+architecture only appear when two independently deployed applications have to cooperate on one real
+page — so the remote owns the Add-to-basket buttons while the shell owns the basket counter, and
+getting those two to agree is step 3.
 
 Two applications, one library, and — importantly — **one root `package.json`**. This is an Nx
 _integrated_ monorepo, so there is a single dependency install for the whole workspace.
@@ -85,7 +91,8 @@ npm run start:remote
 
 Then open **<http://localhost:4271>** and click through Home, Products and Lab.
 
-- **Products** navigates nowhere. That is step 2.
+- **Products** does not work yet. The shell has no route for it, so you get a 404 that says so.
+  That is step 2.
 - **Lab** is the dashboard: a live picture of what the two applications are actually doing, with a
   checklist that updates as you work. Keep it open in a second tab.
 
