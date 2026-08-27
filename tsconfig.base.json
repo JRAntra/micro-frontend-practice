@@ -1,0 +1,27 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "products/Routes": ["apps/products/src/app/remote-entry/entry.routes.ts"],
+      "@mf-lab/shared-auth": ["libs/shared-auth/src/index.ts"],
+      "@mf-lab/lab-dashboard": ["libs/lab-dashboard/src/index.ts"],
+      "products/ProductCard": [
+        "apps/products/src/app/remote-entry/product-card.component.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
