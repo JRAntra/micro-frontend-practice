@@ -1,12 +1,59 @@
 # Step 2 — Load the remote from the shell
 
-**Required** · 25 points · checks named `[s2]`
+**Ticket 2 of 6** · required · 25 points · ≈15 min · checks named `[s2]`
+
+> _The Products link in our own header goes to a 404. Customers have noticed._
 
 You will edit: `apps/shell/module-federation.config.ts` · `apps/shell/src/app/app.routes.ts`
 
 ---
 
-## The concept
+## Do this
+
+Two files, and you need **both** — this is the step where doing one half and being confused by the
+other is the normal experience.
+
+**1. Declare the remote.** In `apps/shell/module-federation.config.ts`:
+
+```ts
+remotes: ['products'],
+```
+
+A bare string means "a project in this workspace with that name". Nx looks up that project's serve
+port and bakes `http://localhost:4272/remoteEntry.mjs` into the build.
+
+**2. Route to it.** In `apps/shell/src/app/app.routes.ts`, add an ordinary lazy route — with one
+unusual detail: the specifier is `<remote name>/<exposed key>`, not a file path.
+
+```ts
+{
+  path: 'products',
+  loadChildren: () => import('products/Routes').then((m) => m.remoteRoutes),
+}
+```
+
+The exposed file exports a const named `remoteRoutes`, so `.then()` has to return `m.remoteRoutes`
+rather than the module. `RemoteUnavailableComponent` is already written for you next door if you
+want a `.catch()` — read the solution's note on what it does and does not buy you.
+
+If TypeScript complains it cannot find `products/Routes`, that is expected and already handled:
+`tsconfig.base.json` maps it so `tsc` can type-check a specifier with no file behind it at runtime.
+That mapping is also a trap — see **Do not trust the dev server** below.
+
+```bash
+npm test -- -t "[s2]"
+```
+
+> **Restart the affected dev server.** `module-federation.config.ts` is read once, when webpack
+> starts — see [SETUP.md](../SETUP.md#editing-a-federation-config-requires-a-restart). The
+> `:watch` scripts do it for you. `app.routes.ts` is ordinary application code and hot-reloads.
+
+**Before you change anything you will see:** `remotes is empty — the shell knows of no remotes`, and
+`path found: false, import found: false`.
+
+---
+
+## Why it matters
 
 The remote publishes; the **host** decides what it is willing to load. Those are
 independent, and both are required — a published module that nobody declares is
@@ -40,61 +87,20 @@ import and behaves nothing like one.
 This is the moment microfrontends actually happen: one application rendering a
 component it never compiled, fetched over the network while the user waits.
 
-## Your task
+## See it in the browser
 
-Two files.
+On the dashboard, the shell→products arrow draws itself and goes green, and the header badge counts
+step 2. Click **Products** in the shell nav: you should see the remote's own page instead of the
+_Remote unavailable_ fallback.
 
-**1. `apps/shell/module-federation.config.ts`** — `remotes` is empty, so the
-shell knows about no remotes. Declare the products remote. A bare string means "a
-project in this workspace with that name"; Nx looks up that project's serve port
-and bakes `http://localhost:<port>/remoteEntry.mjs` into the build.
+**Do not trust the render.** A `loadChildren` import of `products/Routes` compiles and renders even
+with no remote declared — this is the tsconfig path-mapping trap, and it is the single most common
+way to "finish" this step without doing it. `TOUR.md` →
+**[`tsconfig.base.json` — the workspace module map](../TOUR.md)** explains why.
 
-**2. `apps/shell/src/app/app.routes.ts`** — there is no `/products` route. The
-header already links to it (see `app.component.ts`), so clicking **Products**
-today goes nowhere. Add a route with:
-
-- `path: 'products'`
-- `loadChildren` that imports `products/Routes` and returns its `remoteRoutes`
-  export.
-
-**What you will see before you change anything:** `remotes is empty — the shell knows about no remotes`,
-and `no import('products/Routes')`. Once both are in place, the runtime test
-clicks **Products** and expects the remote's page to appear.
-
-If you get a TypeScript error about not finding the module `products/Routes`,
-that is expected and already solved for you — `tsconfig.base.json` maps it so
-`tsc` can type-check a specifier that has no local file at runtime. `TOUR.md`
-explains why that mapping is also a trap.
-
-## How to check it
-
-```bash
-npm test -- -t "[s2]"
-```
-
-> **Restart the dev server after this edit.** `module-federation.config.ts` and
-> `app.routes.ts` differ here: the routes file is application code and hot-reloads, but the
-> federation config is read by webpack when the server _starts_. Save it and nothing happens.
-> Stop the affected server and run `npm start` (or `npm run start:remote`) again.
-
-**In the browser.** The dashboard's shell→products arrow goes solid green, and the header badge
-counts step 2. Click **Products** in the shell nav: you should see the remote's own page instead of
-the _Remote unavailable_ fallback.
-
-**Do not trust the dev server alone here.** `tsconfig.base.json` maps `products/Routes` straight at
-the real source file, so a `loadChildren` import compiles and renders even when the shell has not
-declared the remote at all — webpack just bundles the component into the host. The page looks right
-and no federation happened. This is the single most common way to "finish" this step without doing
-it.
-
-Two things see through it, and they are what the dashboard's s2 probe uses:
-
-```bash
-npm run build && npm run serve:dist   # two real origins, no path mappings
-```
-
-and the browser DevTools **Network** tab: a genuinely federated route fetches
-`remoteEntry.mjs` from `localhost:4272`. If you don't see that request, it isn't federated.
+Three things see through it: the dashboard's s2 check (which looks for the actual `remoteEntry.mjs`
+request rather than trusting the render), the DevTools **Network** tab, and
+`npm run build && npm run serve:dist` — two real origins, no path mappings.
 
 ## Hints
 

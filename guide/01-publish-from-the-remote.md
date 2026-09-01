@@ -1,12 +1,50 @@
 # Step 1 — Publish something from the remote
 
-**Required** · 15 points · checks named `[s1]`
+**Ticket 1 of 6** · required · 15 points · ≈5 min · checks named `[s1]`
+
+> _The products team shipped their split-out app and forgot to make any of it public._
 
 You will edit: `apps/products/module-federation.config.ts`
 
 ---
 
-## The concept
+## Do this
+
+`apps/products` currently publishes **nothing**. Give it one public entry point.
+
+Open `apps/products/module-federation.config.ts` and fill in the empty `exposes` map:
+
+```ts
+exposes: {
+  './Routes': 'apps/products/src/app/remote-entry/entry.routes.ts',
+},
+```
+
+Two things to get right, and they are the two things people get wrong:
+
+- The **key** is the specifier consumers use after the remote's name. The shell will import
+  `products/Routes`, so the key is `'./Routes'`.
+- The **value** is **workspace-root relative** — it starts with `apps/products/…`, not `./`.
+
+Point it at `entry.routes.ts`, not `app.routes.ts`. The remote has two front doors: `app.routes.ts`
+is its own root table for when you open `:4272` directly, and `remote-entry/entry.routes.ts` is the
+one meant for federation. (`TOUR.md` → **Two front doors**.)
+
+Then check it:
+
+```bash
+npm test -- -t "[s1]"
+```
+
+> **Restart the remote's dev server.** `module-federation.config.ts` is read once, when webpack
+> starts — see [SETUP.md](../SETUP.md#editing-a-federation-config-requires-a-restart).
+> `npm run start:remote:watch` does it for you.
+
+**Before you change anything you will see:** `exposes is empty — nothing is published`.
+
+---
+
+## Why it matters
 
 A **remote** is an application that publishes some of its modules for other
 applications to import at runtime. It is a black box: the only things the outside
@@ -36,37 +74,10 @@ In a real company this is the API-review surface. Adding a key here is a public
 commitment: another team will import it, and you cannot rename it without
 coordinating a deploy.
 
-## Your task
+## See it in the browser
 
-Open **`apps/products/module-federation.config.ts`**.
-
-Its `exposes` map is empty, so the products application currently publishes
-nothing at all. Add one entry that publishes the remote's routes:
-
-- The **key** is the specifier consumers use after the remote name. The shell is
-  going to import `products/Routes`, so the key needs to be `'./Routes'`.
-- The **value** is the file in this project to bundle as that entry point. The
-  routes intended for federation live in
-  `apps/products/src/app/remote-entry/entry.routes.ts`. Paths here are
-  **workspace-root relative**, not relative to the config file.
-
-**What you will see before you change anything:** the products build succeeds, but its manifest lists no
-exposed modules and no `remoteEntry.mjs` is emitted. The failing check says
-`exposes is empty — nothing is published`.
-
-## How to check it
-
-```bash
-npm test -- -t "[s1]"
-```
-
-> **Restart the dev server after this edit.** `module-federation.config.ts` and
-> `app.routes.ts` differ here: the routes file is application code and hot-reloads, but the
-> federation config is read by webpack when the server _starts_. Save it and nothing happens.
-> Stop the affected server and run `npm start` (or `npm run start:remote`) again.
-
-**In the browser.** With `npm start` and `npm run start:remote` running, open
-<http://localhost:4271/lab>. Before this step the dashboard's **products** box is grey and reads
+With both servers running, open <http://localhost:4271/lab>. Before this step the dashboard's
+**products** box is grey and reads
 _publishes nothing_; the remote-entry badge shows no exposed keys.
 
 After restarting the remote's server, the box turns solid and the badge lists `./Routes` — you do not

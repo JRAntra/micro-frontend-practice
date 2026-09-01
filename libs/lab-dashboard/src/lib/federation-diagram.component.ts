@@ -97,52 +97,55 @@ import { LabSnapshot } from './lab-probe.service';
       }
       .tab {
         fill: none;
-        stroke: var(--lab-line);
+        stroke: var(--line);
         stroke-dasharray: 3 4;
       }
       .box {
         stroke-width: 1.5;
+        /* Boxes cross-fade between states rather than snapping, so a change you
+           caused two seconds ago still reads as a change when you look up. */
+        transition: fill 0.5s var(--ease), stroke 0.5s var(--ease);
       }
       .host {
-        fill: var(--lab-surface);
-        stroke: var(--lab-line-strong);
+        fill: var(--paper);
+        stroke: var(--line-2);
       }
       .scope {
-        fill: var(--lab-surface);
-        stroke: var(--lab-line);
+        fill: var(--paper);
+        stroke: var(--line);
       }
       .box.live {
-        fill: var(--lab-ok-bg);
-        stroke: var(--lab-ok);
+        fill: var(--good-soft);
+        stroke: var(--good);
       }
       .box.idle {
-        fill: var(--lab-surface-dim);
-        stroke: var(--lab-line);
+        fill: var(--paper-2);
+        stroke: var(--line);
       }
       .box.down {
-        fill: var(--lab-bad-bg);
-        stroke: var(--lab-bad);
+        fill: var(--bad-soft);
+        stroke: var(--bad);
         stroke-dasharray: 4 3;
       }
       .rule {
-        stroke: var(--lab-line);
+        stroke: var(--line);
       }
       .caption {
         font-size: 11px;
-        fill: var(--lab-text-dim);
+        fill: var(--ink-3);
       }
       .title {
         font-size: 14px;
         font-weight: 600;
-        fill: var(--lab-text);
+        fill: var(--ink);
       }
       .sub {
         font-size: 11px;
-        fill: var(--lab-text-dim);
+        fill: var(--ink-3);
       }
       .mono {
         font-size: 12px;
-        fill: var(--lab-text);
+        fill: var(--ink);
       }
       .mono.small {
         font-size: 11px;
@@ -150,42 +153,67 @@ import { LabSnapshot } from './lab-probe.service';
       .arrow {
         fill: none;
         stroke-width: 2;
+        transition: stroke 0.4s var(--ease);
       }
+      /*
+       * Step 2 is the moment federation actually starts happening, and it is worth
+       * more than a colour swap. The line draws itself from the host down to the
+       * remote — 56 user units, so a dash of 60 covers it with room to spare.
+       */
       .arrow.wired {
-        stroke: var(--lab-ok);
+        stroke: var(--good);
+        stroke-dasharray: 60;
+        animation: draw 0.6s var(--ease) both;
+      }
+      @keyframes draw {
+        from {
+          stroke-dashoffset: 60;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
       }
       .arrow.unwired {
-        stroke: var(--lab-bad);
+        stroke: var(--bad);
         stroke-dasharray: 5 4;
       }
       .arrow.down {
-        stroke: var(--lab-line);
+        stroke: var(--line);
         stroke-dasharray: 2 5;
       }
       .head {
-        fill: var(--lab-text-dim);
+        fill: var(--ink-3);
       }
       .edge {
         font-size: 11px;
+        transition: fill 0.4s var(--ease);
       }
       .edge.wired {
-        fill: var(--lab-ok);
+        animation: fade-in 0.6s 0.25s var(--ease) both;
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+      }
+      .edge.wired {
+        fill: var(--good);
       }
       .edge.unwired {
-        fill: var(--lab-bad);
+        fill: var(--bad);
       }
       .edge.down {
-        fill: var(--lab-text-dim);
+        fill: var(--ink-3);
       }
       .ok {
-        fill: var(--lab-ok);
+        fill: var(--good);
         font-weight: 600;
       }
       .bad {
-        fill: var(--lab-bad);
+        fill: var(--bad);
       }
       .dim {
-        fill: var(--lab-text-dim);
+        fill: var(--ink-3);
       }
     `,
   ],

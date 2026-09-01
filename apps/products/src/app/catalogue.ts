@@ -21,22 +21,23 @@ export interface Product {
   tags: string[];
 }
 
-export type Category = 'Propulsion' | 'Traps' | 'Optics' | 'Provisions';
+export type Category = 'Runtime' | 'Contracts' | 'Observability' | 'Tooling';
 
 export const CATEGORIES: Category[] = [
-  'Propulsion',
-  'Traps',
-  'Optics',
-  'Provisions',
+  'Runtime',
+  'Contracts',
+  'Observability',
+  'Tooling',
 ];
 
 export const PRODUCTS: Product[] = [
   {
     sku: 'AC-1',
-    name: 'Anvil, 50kg',
-    blurb: 'The classic. Gravity does the work; you supply the timing.',
+    name: 'Shared Singleton Anvil, 50kg',
+    blurb:
+      'The classic. Declare it a singleton and one instance serves every remote; forget to, and a second one drops on your architecture from a height.',
     price: 12900,
-    category: 'Traps',
+    category: 'Contracts',
     rating: 4.6,
     reviews: 1284,
     stock: 41,
@@ -44,12 +45,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-2',
-    name: 'Rocket Skates',
+    name: 'Remote Entry Rocket Skates',
     blurb:
-      'Strap in, point downhill, and reconsider your life choices at speed.',
+      'Straps remoteEntry.mjs to your feet and fires it across the network at runtime. Landing where you expected is not guaranteed.',
     price: 24900,
     was: 29900,
-    category: 'Propulsion',
+    category: 'Runtime',
     rating: 4.2,
     reviews: 862,
     stock: 7,
@@ -57,10 +58,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-3',
-    name: 'Giant Magnet',
-    blurb: 'Attracts iron, steel, and the occasional passing train.',
+    name: 'Peer-Dependency Magnet, Giant',
+    blurb:
+      'Attracts iron, steel, and every mismatched semver range still sitting in your shared scope.',
     price: 8900,
-    category: 'Traps',
+    category: 'Contracts',
     rating: 3.9,
     reviews: 431,
     stock: 0,
@@ -68,11 +70,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-4',
-    name: 'Portable Hole',
+    name: 'Version-Locked Portable Hole',
     blurb:
-      'A hole you can carry. Read the fine print about which side you are on.',
+      'A hole exactly the shape of your requiredVersion. Anything else, however close, does not fit through.',
     price: 39900,
-    category: 'Traps',
+    category: 'Contracts',
     rating: 4.8,
     reviews: 2109,
     stock: 12,
@@ -80,10 +82,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-5',
-    name: 'Jet-Propelled Unicycle',
-    blurb: 'One wheel, one engine, and no meaningful braking system.',
+    name: 'Dynamic-Import Unicycle, Jet-Propelled',
+    blurb:
+      'One wheel, one import(), and no meaningful fallback if the remote does not answer.',
     price: 54900,
-    category: 'Propulsion',
+    category: 'Runtime',
     rating: 3.6,
     reviews: 198,
     stock: 3,
@@ -91,11 +94,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-6',
-    name: 'Telescopic Binoculars',
-    blurb: 'See the horizon. See it get closer. See it too late.',
+    name: 'Manifest-Reading Binoculars, Telescopic',
+    blurb:
+      'See the horizon. See mf-manifest.json. See the outage coming, assuming you remembered to look.',
     price: 15900,
     was: 18900,
-    category: 'Optics',
+    category: 'Observability',
     rating: 4.4,
     reviews: 673,
     stock: 28,
@@ -103,10 +107,10 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-7',
-    name: 'Dehydrated Boulders',
-    blurb: 'Just add water. Then step back rather briskly.',
+    name: 'Dehydrated Build-Artifact Boulders',
+    blurb: 'Just add a module-federation.config.ts. Then step back rather briskly.',
     price: 4900,
-    category: 'Provisions',
+    category: 'Tooling',
     rating: 4.1,
     reviews: 1512,
     stock: 156,
@@ -114,10 +118,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-8',
-    name: 'Instant Girder Kit',
-    blurb: 'Bridges, scaffolds, and one very optimistic diving board.',
+    name: 'Instant Scaffold Girder Kit',
+    blurb:
+      'Nx generators, an exposes map, and one very optimistic remotes list.',
     price: 22900,
-    category: 'Provisions',
+    category: 'Tooling',
     rating: 4.0,
     reviews: 289,
     stock: 19,
@@ -125,10 +130,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-9',
-    name: 'Spring-Loaded Boots',
-    blurb: 'Vertical travel with no upper limit and no lower one either.',
+    name: 'Container-Init Boots, Spring-Loaded',
+    blurb:
+      'Vertical travel with no upper limit — every bounce re-initialises a federation container from scratch.',
     price: 17900,
-    category: 'Propulsion',
+    category: 'Runtime',
     rating: 4.3,
     reviews: 540,
     stock: 22,
@@ -136,10 +142,11 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: 'AC-10',
-    name: 'Periscope, Collapsible',
-    blurb: 'Look around corners. Regret what you find there.',
+    name: 'Share-Scope Periscope, Collapsible',
+    blurb:
+      "Look around the corner your bundler can't. Regret what the live share scope finds there.",
     price: 9900,
-    category: 'Optics',
+    category: 'Observability',
     rating: 3.8,
     reviews: 156,
     stock: 64,

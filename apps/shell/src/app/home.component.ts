@@ -30,22 +30,26 @@ import { PRODUCTS_ORIGIN, remoteContainerLoaded } from '@mf-lab/lab-dashboard';
       <section class="hero card">
         <div class="hero-copy">
           <span class="chip chip-accent"
-            >Est. 1949 · Ships from the desert</span
+            >Est. 1949 · Ships across the share scope</span
           >
           <h1 data-testid="home-heading">
             Everything you need,<br />
             slightly faster than advisable.
           </h1>
           <p class="lede">
-            Anvils, rocket skates, portable holes. Acme has outfitted ambitious
-            pursuits for three quarters of a century, and we have never once
-            been asked for a refund by anyone still in a position to ask.
+            Remote entries, shared singletons, version contracts. Boundary
+            &amp; Co. has been federating ambitious architectures for three
+            quarters of a century, and no shared dependency has ever once
+            resolved cleanly on the first try.
           </p>
           <div class="row row-wrap">
-            <a routerLink="/products" class="btn btn-primary"
-              >Browse the catalogue</a
+            <a routerLink="/start" class="btn btn-primary"
+              >Start here →</a
             >
-            <a routerLink="/lab" class="btn">See how this page is built</a>
+            <a routerLink="/products" class="btn">Browse the catalogue</a>
+            <a routerLink="/lab" class="btn btn-quiet"
+              >See how this page is built</a
+            >
           </div>
         </div>
 
@@ -392,23 +396,31 @@ export class HomeComponent implements OnInit {
   );
 
   readonly stats = [
-    { value: '1,412', label: 'products in catalogue' },
-    { value: '99.2%', label: 'delivered before impact' },
-    { value: '24/7', label: 'desert dispatch' },
+    { value: '10', label: 'concepts in catalogue' },
     { value: '2', label: 'independently deployed apps' },
+    { value: '1', label: 'shared share scope' },
+    { value: '0', label: 'binary assets shipped' },
   ];
 
   readonly categories = [
     {
-      name: 'Propulsion',
-      note: 'Skates, boots, unicycles',
+      name: 'Runtime',
+      note: 'Remote entries, dynamic imports',
       tint: 'hsl(18 62% 82%)',
     },
-    { name: 'Traps', note: 'Anvils, magnets, holes', tint: 'hsl(352 48% 84%)' },
-    { name: 'Optics', note: 'See it coming', tint: 'hsl(200 52% 82%)' },
     {
-      name: 'Provisions',
-      note: 'Girders and boulders',
+      name: 'Contracts',
+      note: 'Shared singletons, semver locks',
+      tint: 'hsl(352 48% 84%)',
+    },
+    {
+      name: 'Observability',
+      note: 'Manifests, live share scope',
+      tint: 'hsl(200 52% 82%)',
+    },
+    {
+      name: 'Tooling',
+      note: 'Config, generators, scaffolds',
       tint: 'hsl(160 40% 82%)',
     },
   ];

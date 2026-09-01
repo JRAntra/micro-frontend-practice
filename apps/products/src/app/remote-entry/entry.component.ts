@@ -28,12 +28,12 @@ type Sort = 'featured' | 'price-asc' | 'price-desc' | 'rating';
       <!-- ------------------------------------------------------ page header -->
       <header class="head">
         <div class="stack">
-          <span class="eyebrow">Acme catalogue</span>
+          <span class="eyebrow">Boundary &amp; Co. catalogue</span>
           <h1 data-testid="products-heading">Products</h1>
           <p class="muted lede">
             {{ PRODUCTS.length }} items across
-            {{ CATEGORIES.length }} departments. Everything ships same-day from
-            the desert depot, whether or not that is wise.
+            {{ CATEGORIES.length }} departments. Everything ships over the
+            wire, whether or not the share scope agrees.
           </p>
         </div>
 

@@ -1,12 +1,44 @@
 # Step 4 — Federate one component, not a whole page
 
-**Bonus** · 15 points · checks named `[s4]`
+**Ticket 4 of 6** · bonus · 15 points · ≈10 min · checks named `[s4]`
 
-You will edit: `apps/products/module-federation.config.ts` · `apps/shell/src/app/home.component.ts`
+> _Marketing wants the week's pick on the home page. The card is the products team's; the page is ours._
+
+You will edit: `apps/products/module-federation.config.ts`
 
 ---
 
-## The concept
+## Do this
+
+The shell's home page already asks the remote for a single component —
+`apps/shell/src/app/home.component.ts` imports `products/ProductCard` in `ngOnInit` and swallows any
+failure, so an optional embed can never take the host's page down.
+
+The remote does not publish it. Add a **second** entry to `exposes`:
+
+```ts
+exposes: {
+  './Routes': 'apps/products/src/app/remote-entry/entry.routes.ts',
+  './ProductCard': 'apps/products/src/app/remote-entry/product-card.component.ts',
+},
+```
+
+Workspace-root relative, same as step 1. The key must match what the shell imports: the part after
+`products/`, with `./` in front.
+
+```bash
+npm test -- -t "[s4]"
+```
+
+> **Restart the affected dev server.** `module-federation.config.ts` is read once, when webpack
+> starts — see [SETUP.md](../SETUP.md#editing-a-federation-config-requires-a-restart). The
+> `:watch` scripts do it for you. `app.routes.ts` is ordinary application code and hot-reloads.
+
+**Before you change anything you will see:** `Received: ["./Routes"]` — the card key is absent.
+
+---
+
+## Why it matters
 
 So far the remote has published a routed **area**: the shell handed its outlet over
 and the remote owned the whole page. That is the coarse-grained form of
@@ -37,44 +69,16 @@ into one screen.
 It also changes the failure mode. A missing route is obvious. A missing embedded
 widget just… isn't there.
 
-## Your task
+## See it in the browser
 
-The shell's home page already asks the remote for a component. Look at
-`apps/shell/src/app/home.component.ts`: `ngOnInit` imports
-`products/ProductCard`, and deliberately swallows any failure so an optional
-embed can never take the host's page down.
+The remote-entry badge in the dashboard gains a second exposed key,
 
-The remote does not publish it yet. Add a **second** entry to `exposes` in
-`apps/products/module-federation.config.ts`, publishing
-`apps/products/src/app/remote-entry/product-card.component.ts` under the key the
-shell asks for.
-
-**What you will see before you change anything:** `exposes = ["./Routes"]` — the card key is absent.
-
-**One thing to watch.** This step's runtime test does not only check that the card
-appeared; it also checks the browser actually made a request to the remote's
-origin. That is because `products/ProductCard` _also_ resolves through the path
-mapping in `tsconfig.base.json`, so it is entirely possible to get a card on
-screen that webpack compiled into the shell — no federation involved. "It renders"
-is not evidence that federation works.
-
-## How to check it
-
-```bash
-npm test -- -t "[s4]"
-```
-
-> **Restart the dev server after this edit.** `module-federation.config.ts` and
-> `app.routes.ts` differ here: the routes file is application code and hot-reloads, but the
-> federation config is read by webpack when the server _starts_. Save it and nothing happens.
-> Stop the affected server and run `npm start` (or `npm run start:remote`) again.
-
-**In the browser.** The remote-entry badge in the dashboard gains a second exposed key,
 `./ProductCard`, and the shell's **home page** fills in the empty card slot.
 
-The same path-mapping caveat as step 2 applies — `products/ProductCard` is mapped in
-`tsconfig.base.json` too, so a rendered card is not proof of federation. Check the Network tab, or
-`npm run serve:dist`.
+The chip beside **This week's pick** on the home page is the thing to read. It says
+`fetched from the remote at runtime` only when the browser really requested `remoteEntry.mjs`, and
+`compiled into the shell — not federated` when it did not — because `products/ProductCard` is
+mapped in `tsconfig.base.json` too, so a rendered card is not proof of anything. Same trap as step 2.
 
 ## Hints
 

@@ -77,25 +77,32 @@ architecture — so they get separate dev servers.
 **Terminal 1 — the host:**
 
 ```bash
-npm start
+npm run start:watch
 ```
 
 **Terminal 2 — the remote:**
 
 ```bash
-npm run start:remote
+npm run start:remote:watch
 ```
 
 Then open **<http://localhost:4271>**. That is the only URL you need; port 4272 exists so the shell
 can fetch the remote from it.
 
-|                        | serves                                     | port     |
-| ---------------------- | ------------------------------------------ | -------- |
-| `npm start`            | `apps/shell`, the host — the page you open | **4271** |
-| `npm run start:remote` | `apps/products`, the remote                | **4272** |
+|                              | serves                                     | port     |
+| ---------------------------- | ------------------------------------------ | -------- |
+| `npm run start:watch`        | `apps/shell`, the host — the page you open | **4271** |
+| `npm run start:remote:watch` | `apps/products`, the remote                | **4272** |
 
-Both watch and live-reload. The shell's nav has three links:
+The `:watch` variants are the plain `npm start` / `npm run start:remote` servers wrapped in
+nodemon, so they restart themselves when you edit a `module-federation.config.ts` — see
+"Editing a federation config requires a restart" below for why that matters. Use the plain
+scripts if you would rather restart by hand.
 
+Both watch and live-reload. The shell's nav has four links:
+
+- **Start here** — the on-ramp: what you are building, in what order, and which file each step
+  touches. Read it first if you are not reading these documents.
 - **Home** — the shell's own page. The empty slot in the middle is step 4.
 - **Products** — nothing yet. That is step 2.
 - **Lab** — the dashboard. Keep it open in a second browser tab while you work.
@@ -121,6 +128,9 @@ start it again.
 Which server: the products one for `apps/products/module-federation.config.ts`, the shell one for
 `apps/shell/module-federation.config.ts`. `app.routes.ts` is ordinary application code and
 hot-reloads.
+
+If you started with `npm run start:watch` / `npm run start:remote:watch`, this is handled: those
+scripts watch the two federation configs and the webpack configs, and restart the server for you.
 
 ---
 
@@ -160,20 +170,21 @@ npm run serve:dist     # serves the built output on 4271 / 4272
 reads the `mf-manifest.json` webpack actually emitted, and whether `remoteEntry.mjs` exists at all. A
 configuration that looks right but does not take effect passes the unit tests and fails here.
 
-`npm run serve:dist` matters for a subtler reason. **The dev server proves less than you think.** In
-dev mode both applications are compiled from one Nx graph, and `tsconfig.base.json` maps
-`products/Routes` and `products/ProductCard` straight at the remote's real source files. So an
-import can resolve, render, and look completely correct while no federation happened at all —
-webpack quietly compiled the remote's code into the host bundle. You get one build, one deploy, and
-none of the independence that was the point.
+`npm run serve:dist` matters for a subtler reason: **the dev server proves less than you think.** A
+federated import can resolve, render and look completely correct while no federation happened at
+all. That is the tsconfig path-mapping trap, and [`TOUR.md`](TOUR.md) → **the workspace module map**
+explains it properly.
 
-Three things see through it:
+Three things see through it: `serve:dist` (two genuinely separate origins, no shared module
+resolution), the browser's **Network** tab, and the `/lab` dashboard's step 2 check, which looks for
+the actual `remoteEntry.mjs` request rather than trusting the render.
 
-- `npm run serve:dist`, which puts the two applications on genuinely separate origins with no shared
-  module resolution.
-- The browser's **Network** tab: real federation fetches `remoteEntry.mjs` from `localhost:4272`.
-- The `/lab` dashboard, whose step 2 check looks for exactly that request rather than trusting the
-  render.
+```bash
+npm run blast-radius   # serve:dist, but the remote's container returns 404
+```
+
+That last one is the experiment behind `DESIGN.md` question 5. The `/lab` dashboard can also walk
+you through it against the dev servers.
 
 ---
 

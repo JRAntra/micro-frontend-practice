@@ -1,12 +1,55 @@
 # Step 5 — Pin the framework contract
 
-**Bonus** · 15 points · checks named `[s5]`
+**Ticket 5 of 6** · bonus · 15 points · ≈10 min · checks named `[s5]`
+
+> _Products want to move to Angular 20 next quarter. Nobody can say what happens to us if they do._
 
 You will edit: `apps/shell/module-federation.config.ts` · `apps/products/module-federation.config.ts`
 
 ---
 
-## The concept
+## Do this
+
+Nothing is broken. This ticket is about writing down a decision you are currently inheriting.
+
+In **both** config files, make the `shared` callback state an explicit policy for `@angular/core`:
+
+```ts
+shared: (name, sharedConfig) =>
+  name === '@angular/core'
+    ? { ...sharedConfig, singleton: true, strictVersion: true }
+    : sharedConfig,
+```
+
+Spreading `sharedConfig` keeps the `requiredVersion` Nx derived from the root `package.json` and
+overrides only the policy. Pass everything else through unchanged — including
+`@mf-lab/shared-auth` from step 3. Both sides must declare it: a policy declared by one participant
+is not a contract.
+
+```bash
+npm test -- -t "[s5]"
+```
+
+> **Restart the affected dev server.** `module-federation.config.ts` is read once, when webpack
+> starts — see [SETUP.md](../SETUP.md#editing-a-federation-config-requires-a-restart). The
+> `:watch` scripts do it for you. `app.routes.ts` is ordinary application code and hot-reloads.
+
+**Before you change anything you will see:** `Expected: strictVersion: true` /
+`Received: {"singleton":true}`, once per application.
+
+> **Be aware of what this step is and is not.** Nx's `getNpmPackageSharedConfig` already returns
+> `{ singleton: true, strictVersion: true, requiredVersion }` for every npm package, so
+> `@angular/core` is **already strict** in this workspace — you can see the green flag in the `/lab`
+> share-scope table before you write a line, and it is green for `@angular/common` too. This is not
+> a bug fix. It is the difference between a policy you _have_ and a policy you have **chosen**, and
+> the check deliberately calls your callback with a bare `{ singleton: true }` so that it measures
+> what you declared rather than what your build tool handed you. A default is someone else's
+> decision that currently matches yours; it can change on a minor version bump and nobody will
+> review it, because it is not in your repository.
+
+---
+
+## Why it matters
 
 Host and remote are built and deployed at _different times_, by different teams.
 But they run together, in one browser tab, and they have to agree at runtime about
@@ -24,60 +67,33 @@ So what happens when the versions do not match? By default, this:
               │                                  │
               └──────────► share scope ◄─────────┘
                             │
-              default:  incompatible → warn, load BOTH  ← silent, in production
-   strictVersion:  incompatible → throw at load time    ← loud, on the deploy
+  webpack default:  incompatible → warn, load BOTH  ← silent, in production
+    strictVersion:  incompatible → throw at load time  ← loud, on the deploy
 ```
 
-The default is deliberately permissive, and that is the trap. A quiet fallback to
-two Angulars converts a _build-time version problem_ into a _runtime injector
-problem_, in production, in whichever combination of deploys happens to be live.
-You will debug it as a mysterious DI bug and never think about versions.
+webpack's own default is deliberately permissive, and that is the trap it sets. A
+quiet fallback to two Angulars converts a _build-time version problem_ into a
+_runtime injector problem_, in production, in whichever combination of deploys
+happens to be live. You will debug it as a mysterious DI bug and never think about
+versions.
 
 `strictVersion: true` moves the failure to the moment it is cheap: you find out on
 the deploy that caused it. That is the whole value — not preventing the mismatch,
 but refusing to paper over it.
 
-## Your task
+## See it in the browser
 
-This step is different from the others: nothing is broken. Nx already shares
-Angular as a singleton, so the app works — it works by _accident of the defaults_,
-and the default is the permissive one.
+Find `@angular/core` in the dashboard's **live share scope** table and read the
 
-Make the policy explicit. In **both** `apps/shell/module-federation.config.ts`
-and `apps/products/module-federation.config.ts`, add a `shared` callback that,
-for `@angular/core`, returns a config with:
+`strictVersion` column. It says `yes` — and it said `yes` before you started, because of the Nx
+default above. This step will not change anything you can see there, and that is the lesson rather
+than a broken dashboard: **the runtime cannot tell you whose decision it is enforcing.** The
+dashboard says as much in its own caption.
 
-- `singleton: true` — never more than one in the page
-- `strictVersion: true` — a version mismatch is an error, not a warning
-
-Pass everything else through unchanged. Both sides must declare it: a policy
-declared by only one participant is not a contract.
-
-**What you will see before you change anything:** `no shared callback — the configuration relies entirely
-on Nx defaults`, or `strictVersion: undefined`.
-
-Note that the test reads your callback by _calling_ it, not by pattern-matching
-the source, so how you write it is up to you.
-
-## How to check it
-
-```bash
-npm test -- -t "[s5]"
-```
-
-> **Restart the dev server after this edit.** `module-federation.config.ts` and
-> `app.routes.ts` differ here: the routes file is application code and hot-reloads, but the
-> federation config is read by webpack when the server _starts_. Save it and nothing happens.
-> Stop the affected server and run `npm start` (or `npm run start:remote`) again.
-
-**In the browser.** Find `@angular/core` in the dashboard's **live share scope** table. Before this
-step it has no `strictVersion`; after it, the flag shows.
-
-This is the one step whose result you cannot see in the built `mf-manifest.json` — webpack consumes
-`strictVersion` and never writes it there. The unit test reads your config file by evaluating it,
-and the dashboard reads the share scope out of the running browser. Those are the only two places
-the decision is observable, which is itself worth knowing: a federation setting that leaves no trace
-in the build output is a setting you can only test at runtime.
+This is also the one step whose result never reaches the built `mf-manifest.json` — webpack consumes
+`strictVersion` and never writes it there. So of the lab's four feedback channels, exactly one can
+see this step at all: `npm test`, which evaluates your config file. Worth knowing in general — a
+federation setting that leaves no trace in the build output is a setting only your source can prove.
 
 ## Hints
 

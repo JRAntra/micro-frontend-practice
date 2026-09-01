@@ -226,12 +226,28 @@ rather than list its own components, so there is one definition of what Products
 
 Worth doing by hand, and the subject of a `DESIGN.md` question.
 
-The lab's test harness can pretend the remote failed to deploy. In `lab/serve-dist.ts` the
-`serveApps` helper accepts `{ products: { hide: ['remoteEntry.mjs'] } }`, which serves the
-remote's build with its container returning 404.
+Make the remote go away, then load the host. Either of these does it:
 
-Try it and watch what happens to the **host**. It is worse than you would guess: the shell does
-not lose the Products page, it does not boot at all — blank screen, and `app-root` empty.
+```bash
+# 1. Against the dev servers — the quick version.
+#    Ctrl+C the terminal running `npm run start:remote` (or `start:remote:watch`),
+#    then reload http://localhost:4271.
+
+# 2. Against the built output — closer to a failed deploy.
+npm run build
+npm run serve:dist                                   # in one terminal
+mv dist/apps/products/remoteEntry.mjs /tmp/          # in another, then reload the shell
+```
+
+The second one has one wrinkle worth knowing: `tools/serve-dist.ts` falls back to `index.html`
+for any missing path, so the removed container answers `200 text/html` rather than `404`. The
+browser rejects it — _"Expected a JavaScript-or-Wasm module script"_ — and the effect on the host
+is the same. Put the file back when you are done.
+
+Now watch what happens to the **host**. It is worse than you would guess: the shell does
+not lose the Products page, it does not boot at all — blank screen, and `app-root` empty. Home,
+the basket, the `/lab` dashboard and the 404 page are gone too, and the console gives you
+`Failed to load resource` and nothing else — no stack, and nothing naming the remote.
 
 Here is why, and it is the most useful thing in this file. Look at `apps/shell/src/main.ts`:
 
@@ -241,8 +257,13 @@ import('./bootstrap').catch((err) => console.error(err));
 
 That indirection is not decoration. Shared modules must be initialised before any shared code
 runs, so webpack initialises the share scope **and every statically-declared remote** while
-resolving that first split chunk. A dead `remoteEntry.mjs` makes that import reject — before
-Angular bootstraps, before the router exists.
+resolving that first split chunk. A dead `remoteEntry.mjs` breaks that chunk — before Angular
+bootstraps, before the router exists.
+
+Note that the `.catch()` on that very line does not save you either, and does not even print:
+the failure happens inside the container-initialisation code webpack wraps _around_ the import,
+so nothing reaches your handler. Blank page, two anonymous resource errors, no clue. That
+silence is the point of the exercise.
 
 Which means the `.catch()` on the shell's `/products` route cannot help here. It is still
 worth having: it covers a container that _loads_ but cannot supply the module (a renamed key,

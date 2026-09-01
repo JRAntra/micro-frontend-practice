@@ -45,6 +45,7 @@ Thumbs.db
 
 # Written by the lab harness at run time (build outcome, test results).
 .lms
+.lab
 
 # Nx writes this when serving static remotes.
 /tmp/static-remotes
