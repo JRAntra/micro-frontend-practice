@@ -1,12 +1,57 @@
 # Step 3 — Share state as a singleton
 
-**Required** · 20 points · checks named `[s3]`
+**Ticket 3 of 6** · required · 20 points · ≈15 min · checks named `[s3]`
 
-You will edit: `apps/shell/module-federation.config.ts` · `apps/products/module-federation.config.ts` · `libs/shared-auth/src/lib/session.store.ts`
+> _Support ticket: "I signed in, then the catalogue asked who I was." Basket count never moves either._
+
+You will edit: `apps/shell/module-federation.config.ts` · `apps/products/module-federation.config.ts`
+
+You will read, but not change: `libs/shared-auth/src/lib/session.store.ts` — the point of this
+ticket is that nothing in that file is wrong.
 
 ---
 
-## The concept
+## Do this
+
+**First, see the bug.** Sign in on the shell's header, then click **Products**. The shell greets you
+by name; the remote says you are browsing anonymously — one click later, in the same tab. Add
+something to the basket from a product card: the card says "In basket" and the header counter stays
+at zero.
+
+Nothing is broken in any component. Both `module-federation.config.ts` files contain this:
+
+```ts
+shared: (name, sharedConfig) => (name === '@mf-lab/shared-auth' ? false : sharedConfig),
+```
+
+Returning `false` removes the package from the share scope entirely, so each application bundles its
+own private copy of `SessionStore`. Two stores, two truths, no error message anywhere. A previous
+developer added it to silence a version warning, and silenced it by creating the exact bug the
+warning was about.
+
+**Fix it in both files.** Either delete the callback, or make it stop refusing:
+
+```ts
+shared: (name, sharedConfig) => sharedConfig,
+```
+
+Keeping the callback is the better move — step 5 wants one. Both sides must agree: fixing one alone
+still gives you two copies.
+
+```bash
+npm test -- -t "[s3]"
+```
+
+> **Restart the affected dev server.** `module-federation.config.ts` is read once, when webpack
+> starts — see [SETUP.md](../SETUP.md#editing-a-federation-config-requires-a-restart). The
+> `:watch` scripts do it for you. `app.routes.ts` is ordinary application code and hot-reloads.
+
+**Before you change anything you will see:** `false — the library is excluded from sharing`, once
+per config.
+
+---
+
+## Why it matters
 
 Federation loads several independently-built bundles into one page. Each of them
 was compiled on its own, so by default each brings **its own copy** of every
@@ -39,42 +84,9 @@ The share scope is the negotiation that prevents duplication. Three levels:
 Nx already shares workspace libraries as singletons for you. So when this goes
 wrong, it is because some configuration is actively opting out.
 
-## Your task
+## See it in the browser
 
-First, see the bug. Sign in on the shell's header, then click **Products**. The
-shell greets you by name; the remote says you are browsing anonymously — one click
-later, in the same tab.
-
-Note what is _not_ wrong: the build is green, the console is clean, and
-`SessionStore` (`libs/shared-auth/src/lib/session.store.ts`) is an ordinary
-root-provided Angular service. The Products page prints its `SessionStore`
-instance id at the bottom; compare it across a reload to convince yourself there
-are two objects.
-
-Now fix it. In **both** `apps/shell/module-federation.config.ts` **and**
-`apps/products/module-federation.config.ts`, a previous developer added a
-`shared` callback that returns `false` for `@mf-lab/shared-auth` — the comment
-says it was to silence a version warning. Returning `false` removes a package
-from the share scope entirely.
-
-Make the library shared as a singleton again. Both sides must agree: fixing one
-side alone still produces two copies.
-
-**What you will see before you change anything:** `@mf-lab/shared-auth is missing from what shell shares`,
-and the runtime test reporting that the remote greeted nobody.
-
-## How to check it
-
-```bash
-npm test -- -t "[s3]"
-```
-
-> **Restart the dev server after this edit.** `module-federation.config.ts` and
-> `app.routes.ts` differ here: the routes file is application code and hot-reloads, but the
-> federation config is read by webpack when the server _starts_. Save it and nothing happens.
-> Stop the affected server and run `npm start` (or `npm run start:remote`) again.
-
-**In the browser.** This step has two demonstrations, and the second one is the more convincing.
+This step has two demonstrations, and the second one is the more convincing.
 
 _The basket._ The **Add to basket** buttons on the Products page are the remote's code. The basket
 counter in the header, and the panel behind it, are the shell's. Add something:
@@ -84,19 +96,13 @@ counter in the header, and the panel behind it, are the shell's. Add something:
   error in the console and nothing in the build output. That silence is the whole problem. A feature
   that is quietly half-broken in production is worse than one that crashes.
 
-_The instance ids._ The **session store instance** panel on the dashboard shows the ids side by
-side — the one the shell holds, and the one the remote reports.
+_The instance ids._ The **session store instances** panel on `/lab` shows every copy of the store
+constructed in this tab. Before this step there are two and the chips are red; after it they
+collapse to one green chip, and `@mf-lab/shared-auth` appears in the **live share scope** table with
+`singleton: true`.
 
-Before this step they differ, and the panel is red: two copies of the store exist, so signing in on
-the shell is invisible inside the remote. Try it — type a name into the shell's sign-in box and watch
-the remote keep saying nobody is signed in.
-
-After it, the two ids collapse into a single green chip, and `@mf-lab/shared-auth` appears in the
-**live share scope** table with `singleton: true`. Sign in again and the remote updates with the
-shell.
-
-The share-scope table is worth reading closely even when it is green. It is the actual runtime object
-webpack negotiates between the two applications, and it is the thing steps 3 and 5 are really about.
+Compare them **within one page load** — the id is generated per construction, so it changes on every
+reload whether or not the store is shared.
 
 ## Hints
 

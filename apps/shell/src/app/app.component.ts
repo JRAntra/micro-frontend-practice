@@ -24,11 +24,19 @@ import { BrandComponent } from './brand.component';
 
     <header class="bar">
       <div class="page inner">
-        <a routerLink="/" class="brandlink" aria-label="Acme Storefront, home">
+        <a routerLink="/" class="brandlink" aria-label="Boundary &amp; Co., home">
           <app-brand />
         </a>
 
         <nav aria-label="Main">
+          <a
+            routerLink="/start"
+            routerLinkActive="on"
+            data-testid="nav-start"
+            class="btn btn-primary btn-sm start-cta"
+          >
+            Start here
+          </a>
           <a
             routerLink="/"
             routerLinkActive="on"
@@ -169,7 +177,11 @@ import { BrandComponent } from './brand.component';
 
       nav {
         display: flex;
+        align-items: center;
         gap: 2px;
+      }
+      .start-cta {
+        margin-right: var(--gap-3);
       }
       nav a {
         padding: 6px 12px;

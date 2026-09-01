@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { withModuleFederation } from '@nx/module-federation/angular';
 import config from './module-federation.config';
 
@@ -8,19 +10,29 @@ import config from './module-federation.config';
  */
 type FederationFn = Awaited<ReturnType<typeof withModuleFederation>>;
 
+/** Written by tools/lab-reporter.cjs on every `npm test`. */
+const LAB_STATUS = join(__dirname, '..', '..', '.lab', 'status.json');
+
 /**
- * One addition on top of the federation setup: SPA history fallback for the dev
- * server, so opening http://localhost:4271/products or /lab directly serves
- * index.html and lets the Angular router take over.
+ * Two additions on top of the federation setup, both dev-server concerns and
+ * neither of them federation.
  *
- * Without it those URLs 404 — the dev server looks for a file at that path, does
- * not find one, and never reaches the application. Client-side navigation (clicking
- * a link) works either way, which is what makes this easy to miss until someone
- * reloads on a deep link.
+ * 1. SPA history fallback, so opening http://localhost:4271/products or /lab
+ *    directly serves index.html and lets the Angular router take over. Without it
+ *    those URLs 404 — the dev server looks for a file at that path, does not find
+ *    one, and never reaches the application. Client-side navigation works either
+ *    way, which is what makes this easy to miss until someone reloads a deep link.
  *
- * Nothing to do with Module Federation. It is left visible rather than hidden
- * because serving deep links is a real hosting requirement of a host application,
- * and you get to make the same decision again in production.
+ *    It is left visible rather than hidden because serving deep links is a real
+ *    hosting requirement of a host application, and you get to make the same
+ *    decision again in production.
+ *
+ * 2. GET /lab-status.json, which hands the /lab dashboard the result of your last
+ *    `npm test` run. Served from a middleware rather than dropped into
+ *    apps/shell/public/ on purpose: anything under public/ is a watched build
+ *    asset, so writing it on every test run would kick off a rebuild you did not
+ *    ask for. Reading it off disk per request costs nothing and never invalidates
+ *    the build.
  *
  * Note the `await`: `withModuleFederation` is async — it resolves the remotes'
  * URLs from the workspace before it can return the config function.
@@ -37,6 +49,38 @@ export default async (...args: Parameters<FederationFn>) => {
         index: '/index.html',
         rewrites: [{ from: /./, to: '/index.html' }],
       },
+      setupMiddlewares: (
+        middlewares: unknown[],
+        devServer: { app?: LabStatusApp }
+      ) => {
+        devServer.app?.get('/lab-status.json', (_req, res) => {
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          try {
+            res.send(readFileSync(LAB_STATUS, 'utf8'));
+          } catch {
+            // No test run yet. Not an error — the dashboard renders a
+            // "run npm test" prompt for exactly this shape.
+            res.status(404).send('{"ranAt":null,"steps":{}}');
+          }
+        });
+        return middlewares;
+      },
     },
   };
 };
+
+/** The slice of webpack-dev-server's express app this file uses. */
+interface LabStatusApp {
+  get(
+    path: string,
+    handler: (
+      req: unknown,
+      res: {
+        setHeader(name: string, value: string): void;
+        status(code: number): { send(body: string): void };
+        send(body: string): void;
+      }
+    ) => void
+  ): void;
+}

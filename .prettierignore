@@ -16,3 +16,6 @@ package-lock.json
 # it. These files are hand-formatted; `npm run format` covers everything else.
 apps/**/*.component.ts
 libs/**/*.component.ts
+
+# Written by the lab harness at run time (tools/lab-reporter.cjs).
+.lab

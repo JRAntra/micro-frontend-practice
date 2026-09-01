@@ -36,7 +36,12 @@ if (!products || !shell) {
 }
 
 const exposed = (products.exposes ?? []).map((e) => e.path);
-const remotes = (shell.remotes ?? []).map((r) => r.alias);
+/**
+ * De-duplicated on purpose. The manifest records one `remotes` entry per module
+ * the host consumes, not per remote, so after step 4 a single declared remote
+ * appears twice — which reads like a configuration mistake and is not one.
+ */
+const remotes = [...new Set((shell.remotes ?? []).map((r) => r.alias))];
 
 note(`products exposes: ${exposed.length ? exposed.join(', ') : '(nothing)'}`);
 note(`shell remotes:    ${remotes.length ? remotes.join(', ') : '(none)'}`);

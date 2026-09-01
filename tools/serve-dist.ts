@@ -5,9 +5,11 @@ import {
   PRODUCTS_DIST,
   PRODUCTS_PORT,
   PRODUCTS_URL,
+  REMOTE_ENTRY,
   SHELL_DIST,
   SHELL_PORT,
   SHELL_URL,
+  WS_ROOT,
 } from './paths';
 
 /**
@@ -38,11 +40,56 @@ const TYPES: Record<string, string> = {
   '.map': 'application/json; charset=utf-8',
 };
 
-function serveDir(root: string, port: number): Promise<Server> {
+/** Written by tools/lab-reporter.cjs on every `npm test`. */
+const LAB_STATUS = join(WS_ROOT, '.lab', 'status.json');
+
+export interface ServeOptions {
+  /**
+   * Paths this origin should pretend not to have, e.g. `['remoteEntry.mjs']`.
+   *
+   * This is how you make the remote look like a failed deploy without touching the
+   * build — see TOUR.md → "Blast radius", and DESIGN.md question 5. A hidden path
+   * returns a real 404 and skips the SPA fallback, because the whole point is to
+   * see what the host does when its container is genuinely missing. (Falling back
+   * to index.html here would hand the browser HTML where it expects an ES module,
+   * which fails for a completely different and much less interesting reason.)
+   */
+  hide?: string[];
+}
+
+function serveDir(
+  root: string,
+  port: number,
+  options: ServeOptions = {}
+): Promise<Server> {
+  const hidden = new Set(
+    (options.hide ?? []).map((p) => p.replace(/^\/+/, ''))
+  );
+
   const server = createServer(async (req, res) => {
     const pathname = new URL(req.url ?? '/', 'http://localhost').pathname;
     let rel = decodeURIComponent(pathname).replace(/^\/+/, '');
     if (rel === '') rel = 'index.html';
+
+    if (hidden.has(rel)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain', ...CORS });
+      res.end(`not found — ${rel} is hidden by the blast-radius experiment`);
+      return;
+    }
+
+    // The shell's dev server exposes this; mirror it so /lab shows your last
+    // `npm test` result against the built output too.
+    if (rel === 'lab-status.json') {
+      try {
+        const body = await readFile(LAB_STATUS, 'utf8');
+        res.writeHead(200, { 'Content-Type': TYPES['.json'], ...CORS });
+        res.end(body);
+      } catch {
+        res.writeHead(404, { 'Content-Type': TYPES['.json'], ...CORS });
+        res.end('{"ranAt":null,"steps":{}}');
+      }
+      return;
+    }
 
     const target = join(root, normalize(rel));
     if (target !== root && !target.startsWith(root + sep)) {
@@ -88,10 +135,12 @@ export interface ServedApps {
 }
 
 /** Serve both built apps on the ports the build expects. */
-export async function serveApps(): Promise<ServedApps> {
+export async function serveApps(
+  options: { shell?: ServeOptions; products?: ServeOptions } = {}
+): Promise<ServedApps> {
   const servers = [
-    await serveDir(SHELL_DIST, SHELL_PORT),
-    await serveDir(PRODUCTS_DIST, PRODUCTS_PORT),
+    await serveDir(SHELL_DIST, SHELL_PORT, options.shell),
+    await serveDir(PRODUCTS_DIST, PRODUCTS_PORT, options.products),
   ];
   return {
     close: () =>
@@ -101,15 +150,43 @@ export async function serveApps(): Promise<ServedApps> {
   };
 }
 
-/** CLI: `npm run serve:dist`. */
+/**
+ * CLI. Two modes:
+ *
+ *   npm run serve:dist      both applications, served normally
+ *   npm run blast-radius    the same, but the remote's container returns 404
+ */
 if (require.main === module) {
+  const blast = process.argv.includes('--blast-radius');
+
   void (async () => {
     try {
-      const served = await serveApps();
-      console.log(`shell    -> ${SHELL_URL}`);
-      console.log(`products -> ${PRODUCTS_URL}/remoteEntry.mjs`);
+      const served = await serveApps(
+        blast ? { products: { hide: [REMOTE_ENTRY] } } : {}
+      );
+
+      if (blast) {
+        console.log(
+          '  BLAST RADIUS — the products container is returning 404.'
+        );
+        console.log('');
+        console.log(`  shell     -> ${SHELL_URL}`);
+        console.log(`  products  -> ${PRODUCTS_URL}  (${REMOTE_ENTRY} hidden)`);
+        console.log('');
+        console.log(
+          '  Open the shell and predict what you will see before you look.'
+        );
+        console.log(
+          '  Then read TOUR.md -> "Blast radius" for why it happens there.'
+        );
+      } else {
+        console.log(`  shell    -> ${SHELL_URL}`);
+        console.log(`  products -> ${PRODUCTS_URL}/${REMOTE_ENTRY}`);
+      }
+
       console.log('');
-      console.log('Ctrl+C to stop. If these 404, run `npm run build` first.');
+      console.log('  Ctrl+C to stop. If these 404, run `npm run build` first.');
+
       const stop = () => void served.close().then(() => process.exit(0));
       process.on('SIGINT', stop);
       process.on('SIGTERM', stop);

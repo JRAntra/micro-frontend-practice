@@ -47,6 +47,16 @@ const config: Config = {
 
   // The step name is the whole story; the failure message carries the teaching.
   verbose: false,
+
+  /*
+   * `default` keeps Jest's normal console output; the second entry additionally
+   * writes .lab/status.json so the /lab dashboard can show what the suite found.
+   *
+   * The dashboard and these checks remain independent — one reads the running
+   * browser, the other reads your source — and the dashboard labels them
+   * separately. This just means you can see both without switching windows.
+   */
+  reporters: ['default', '<rootDir>/tools/lab-reporter.cjs'],
 };
 
 export default config;

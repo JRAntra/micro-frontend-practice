@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-/** The Acme wordmark. Shell-owned chrome — a remote never draws this. */
+/** The Boundary & Co. wordmark. Shell-owned chrome — a remote never draws this. */
 @Component({
   selector: 'app-brand',
   template: `
@@ -24,8 +24,8 @@ import { Component } from '@angular/core';
         />
       </svg>
       <span class="words">
-        <strong>Acme</strong>
-        <span class="sub">Storefront</span>
+        <strong>Boundary</strong>
+        <span class="sub">&amp; Co.</span>
       </span>
     </span>
   `,

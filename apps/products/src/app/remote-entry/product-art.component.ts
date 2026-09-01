@@ -14,7 +14,7 @@ import { Component, computed, input } from '@angular/core';
  * would be obvious if the shell's copy of a product looked different from the
  * remote's.
  */
-type Category = 'Propulsion' | 'Traps' | 'Optics' | 'Provisions';
+type Category = 'Runtime' | 'Contracts' | 'Observability' | 'Tooling';
 
 /** Hue pairs, warm to cool, all sitting comfortably beside the accent. */
 const PALETTE: [number, number][] = [
@@ -90,16 +90,16 @@ interface Blob {
           opacity="0.82"
         >
           @switch (category()) {
-            @case ('Propulsion') {
+            @case ('Runtime') {
               <path d="M-18 10 L0 -16 L18 10 Z" />
               <path d="M-8 10 L-8 18 M8 10 L8 18" />
               <circle cx="0" cy="-2" r="4" />
             }
-            @case ('Traps') {
+            @case ('Contracts') {
               <rect x="-18" y="-6" width="36" height="20" rx="4" />
               <path d="M-11 -6 L-11 -15 L11 -15 L11 -6" />
             }
-            @case ('Optics') {
+            @case ('Observability') {
               <circle cx="-6" cy="0" r="10" />
               <circle cx="12" cy="4" r="6" />
               <path d="M2 -4 L7 -1" />
@@ -123,7 +123,7 @@ interface Blob {
 })
 export class ProductArtComponent {
   readonly sku = input.required<string>();
-  readonly category = input<Category>('Provisions');
+  readonly category = input<Category>('Tooling');
   readonly name = input('');
 
   /** Unique per instance so two cards on one page do not share a gradient id. */
